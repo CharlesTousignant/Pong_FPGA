@@ -11,7 +11,7 @@ entity Pong_GameLoop is
     port (
 	clk, reset : in std_logic;
 	matrix : out matrix_points;
-	score_left, score_right : inout unsigned(6 downto 0);
+	score_left, score_right : out unsigned(6 downto 0);
 	joystick_input : in std_logic_vector(11 downto 0)
 	);
 end Pong_GameLoop;
@@ -21,7 +21,7 @@ signal done : std_logic;
 signal curr_matrix : matrix_points;	 
 signal game_state : GAME_STATE := NEW_GAME;
 
-signal score_right_s, score_left_s : unsigned(6 downto 0);
+signal score_right_s, score_left_s : integer range 0 to 99;
 
 begin									    
 	
@@ -55,8 +55,8 @@ begin
 				curr_matrix <= generate_matrix(ball, paddle_left, paddle_right);
 				
 				if ( reset = '1') then
-                    score_left_s <= to_unsigned(0, score_left_s'length);
-                    score_right_s <= to_unsigned(0, score_right_s'length);
+                    score_left_s <= 0;
+                    score_right_s <= 0;
                     clock_count := 0;
                     game_state <= NEW_MATCH;	
 
@@ -123,6 +123,6 @@ begin
     end process;
    
     matrix <= curr_matrix;	
-    score_right <= score_right_s;
-    score_left <= score_left_s;
+    score_right <= to_unsigned(score_right_s, score_right);
+    score_left <= to_unsigned(score_left_s, score_left;
 end arch;
