@@ -1,19 +1,7 @@
----------------------------------------------------------------------------------------------------
--- 
--- top_labo_4.vhd
---
--- Pierre Langlois
--- v. 1.1, 2021/03/06 pour le laboratoire #4
---
--- Digilent Basys 3 Artix-7 FPGA Trainer Board 
---
----------------------------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;  
-use work.utilitaires_inf3500_pkg.all;	   
-use work.pong_utilitaires_pkg.all;
+use ieee.numeric_std.all;     
+use work.pong_utils_pkg.all;
 use work.all;	   
 
 
@@ -23,19 +11,20 @@ entity top_Pong_8x8Matrix is
 		led : out STD_LOGIC_VECTOR (15 downto 0);
 		JA : in STD_LOGIC_VECTOR (7 downto 0);
         btnC : in std_logic; -- bouton du centre	  
-		cols, rows : out unsigned(7 downto 0);
+		seg : out std_logic_vector(7 downto 0);
+		an : out std_logic_vector(3 downto 0);
 		
-	   VGA_RED      : out  STD_LOGIC_VECTOR (3 downto 0);
-       VGA_BLUE     : out  STD_LOGIC_VECTOR (3 downto 0);
-       VGA_GREEN    : out  STD_LOGIC_VECTOR (3 downto 0);
-       VGA_VS       : out  STD_LOGIC;
-       VGA_HS       : out  STD_LOGIC
+        VGA_RED      : out  STD_LOGIC_VECTOR (3 downto 0);
+        VGA_BLUE     : out  STD_LOGIC_VECTOR (3 downto 0);
+        VGA_GREEN    : out  STD_LOGIC_VECTOR (3 downto 0);
+        VGA_VS       : out  STD_LOGIC;
+        VGA_HS       : out  STD_LOGIC
     );
 end;
 
 architecture arch of top_Pong_8x8Matrix is	
 
-component xadc_wiz_0 is
+component xadc_wiz_1 is
 	port( daddr_in : in STD_logic_vector (6 downto 0); -- address bus for the dynamic reconfiguration port
 		den_in : in std_logic; 					   -- enable signal for the dynamic reconfiguration port
 		di_in : in std_logic_vector (15 downto 0); -- input data bus for the dynamic reconfiguration port
@@ -58,7 +47,7 @@ end component;
 			
 signal clk_30_Hz : std_logic;
 signal clk_25MHz : std_logic;
-constant test_matrix : matrix_points := (others => x"40");
+
 constant clock_speed : integer := 512;
 constant pixel_clock_speed : integer := 25e6;
 
@@ -68,8 +57,10 @@ signal eoc_out : std_logic;
 signal do_out  : std_logic_vector(15 downto 0);  
 signal anal_p, anal_n : std_logic; 	   
 
-signal pong_matrix : matrix_points := (others => x"00");
+signal pong_matrix : matrix_points := (others => to_unsigned(0, game_pixel_width));
 
+signal score_right, score_left : unsigned(6 downto 0);
+signal four_nums_out : four_nums;
 signal fractal_image : frame_info;
 signal fractal_calculated : std_logic;
 
@@ -83,7 +74,7 @@ begin
 	led <= x"00" & do_out(15 downto 8);
 	
     -- instantiation du module				
-	ADCimp : xadc_wiz_0
+	ADCimp : xadc_wiz_1
 	port map( daddr_in => daddr_in, -- choses which input to look at
 	den_in => eoc_out, -- enable signal,	
 	di_in => (others => '0'), -- input data bus ???
@@ -103,19 +94,19 @@ begin
 	vn_in => '0'
 	);
 	
-	mandelBrot_calc  : entity MandelBrot_controller(arch)
-	port map(
-	clk => clk,
-	reset => btnC,
-	image => fractal_image,
-	done => fractal_calculated
-	);
+--	mandelBrot_calc  : entity MandelBrot_controller(arch)
+--	port map(
+--	clk => clk,
+--	reset => btnC,
+--	image => fractal_image,
+--	done => fractal_calculated
+--	);
 	
 	vga : entity vga_ctrl(Behavioral)
 	port map (
 	pxl_clk => clk, 
 	pong_matrix => pong_matrix,
-	fractal => fractal_image,
+	fractal => (others =>( others => x"0")),
 	fractal_calculated =>fractal_calculated,
 	VGA_HS_O => VGA_HS,
     VGA_VS_O => VGA_VS,
@@ -134,10 +125,26 @@ begin
     clk => clk_30_Hz,
 	matrix => pong_matrix,
     reset => btnC,
-	cols => cols,
-	rows => rows,
+	score_left => score_left,
+	score_right => score_right,
 	joystick_input => do_out(15 downto 4)
     );
+    
+    four_nums_out <= score_to_four_nums(score_right, score_left);
+    
+    process(all)
+    variable clkCount : unsigned(19 downto 0) := (others => '0');
+    begin
+        if (rising_edge(clk)) then
+            clkCount := clkCount + 1;           
+        end if;
+        case clkCount(clkCount'left downto clkCount'left - 1) is     -- L'horloge de 100 MHz est ramenée à environ 100 Hz en la divisant par 2^19
+            when "00" => an <= "1110"; seg <= four_nums_out(0);
+            when "01" => an <= "1101"; seg <= four_nums_out(1);
+            when "10" => an <= "1011"; seg <= four_nums_out(2);
+            when others => an <= "0111"; seg <= four_nums_out(3);
+        end case;
+    end process;
     
         
 end arch;

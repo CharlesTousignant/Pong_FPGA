@@ -1,14 +1,11 @@
+-- Based on template vga controller from Digilent's example on github: https://github.com/Digilent/Basys-3-GPIO/blob/master/src/hdl/vga_ctrl.vhd
+
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;	   
-use ieee.numeric_std.all;  	
+use IEEE.STD_LOGIC_1164.ALL;	    	
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.std_logic_unsigned.all;
 use ieee.math_real.all;
-use work.pong_utilitaires_pkg.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use work.pong_utils_pkg.all;
 
 entity vga_ctrl is
     Port ( pxl_clk : in STD_LOGIC;
@@ -30,11 +27,8 @@ architecture Behavioral of vga_ctrl is
 	constant FRAME_WIDTH : natural := 1280;
 	constant FRAME_HEIGHT : natural := 1024; 
 	
-	constant pong_h_width : natural := 8;
-	constant pong_v_width : natural := 8;
-	
-	constant pong_h_block_width : natural := FRAME_WIDTH / pong_h_width; 
-	constant pong_v_block_width : natural := FRAME_HEIGHT / pong_v_width;
+	constant pong_h_block_width : natural := FRAME_WIDTH / game_pixel_width; 
+	constant pong_v_block_width : natural := FRAME_HEIGHT / game_pixel_width;
 	
 	constant fractal_h_block_width : natural := FRAME_WIDTH / H_RES; 
 	constant fractal_v_block_width : natural := FRAME_HEIGHT / V_RES;
@@ -57,8 +51,6 @@ architecture Behavioral of vga_ctrl is
   -- VGA Controller specific signals: Counters, Sync, R, G, B
   
   -------------------------------------------------------------------------
-  -- Pixel clock, in this case 108 MHz
---  signal pxl_clk : std_logic;
   -- The active signal is used to signal the active region of the screen (when not blank)
   signal active  : std_logic;
   
@@ -106,7 +98,7 @@ architecture Behavioral of vga_ctrl is
   signal bg_green_dly        : std_logic_vector(3 downto 0) := (others => '0');
   signal bg_blue_dly        : std_logic_vector(3 downto 0) := (others => '0');
   
-  signal curr_h_block, curr_v_block : integer range 0 to 7;
+  signal curr_h_block, curr_v_block : integer range 0 to game_pixel_width;
   signal curr_h_block_fractal : integer range 0 to H_RES - 1;
   signal curr_v_block_fractal : integer range 0 to V_RES - 1;
 begin

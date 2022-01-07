@@ -31,7 +31,7 @@ begin
     begin
         if rising_edge(clk) then
 
-			cols <= X"FF" xor matrix(to_integer(row_count));
+			cols <= X"FF" xor resize(matrix(to_integer(row_count) * game_pixel_width / 8) / (game_pixel_width / 8), cols'length);
 			rows <= to_unsigned(2 **  to_integer(row_count), rows'length);
 			row_count := row_count + 1;	 	
 		
