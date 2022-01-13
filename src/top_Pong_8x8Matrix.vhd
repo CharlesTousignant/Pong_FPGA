@@ -65,7 +65,7 @@ signal fractal_calculated : std_logic;
 
 begin					   
 	
-	clk_inst_30_Hz : entity generateur_horloge_precis(arch) generic map (100e6, clock_speed) port map (clk, clk_30_Hz);
+	clk_inst_30_Hz : entity clock_gen(arch) generic map (100e6, clock_speed) port map (clk, clk_30_Hz);
 	daddr_in <= "00" & channel_out;
 	anal_p <= JA(4);
 	anal_n <= JA(0);

@@ -124,5 +124,5 @@ begin
    
     matrix <= curr_matrix;	
     score_right <= to_unsigned(score_right_s, score_right);
-    score_left <= to_unsigned(score_left_s, score_left;
+    score_left <= to_unsigned(score_left_s, score_left);
 end arch;

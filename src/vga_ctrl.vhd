@@ -27,12 +27,6 @@ architecture Behavioral of vga_ctrl is
 	constant FRAME_WIDTH : natural := 1280;
 	constant FRAME_HEIGHT : natural := 1024; 
 	
-	constant pong_h_block_width : natural := FRAME_WIDTH / game_pixel_width; 
-	constant pong_v_block_width : natural := FRAME_HEIGHT / game_pixel_width;
-	
-	constant fractal_h_block_width : natural := FRAME_WIDTH / H_RES; 
-	constant fractal_v_block_width : natural := FRAME_HEIGHT / V_RES;
-	
 	constant H_BP : natural := 248; -- H back porch width (pixels)
 	constant H_FP : natural := 48; --H front porch width (pixels)
 	constant H_PW : natural := 112; --H sync pulse width (pixels)
@@ -98,9 +92,9 @@ architecture Behavioral of vga_ctrl is
   signal bg_green_dly        : std_logic_vector(3 downto 0) := (others => '0');
   signal bg_blue_dly        : std_logic_vector(3 downto 0) := (others => '0');
   
+  constant pong_h_block_width : natural := FRAME_WIDTH / game_pixel_width; 
+  constant pong_v_block_width : natural := FRAME_HEIGHT / game_pixel_width;
   signal curr_h_block, curr_v_block : integer range 0 to game_pixel_width;
-  signal curr_h_block_fractal : integer range 0 to H_RES - 1;
-  signal curr_v_block_fractal : integer range 0 to V_RES - 1;
 begin
        
        ---------------------------------------------------------------
@@ -154,22 +148,10 @@ begin
              end if;
            end if;
          end process;
-         
-       --------------------
-       
-       -- The active 
-       
-       --------------------  
+
          -- active signal
          active <= '1' when h_cntr_reg_dly < FRAME_WIDTH and v_cntr_reg_dly < FRAME_HEIGHT
                    else '0';
-       
-       
-     ---------------------------------------
-     
-     -- Generate moving colorbar background
-     
-     ---------------------------------------
      
      process(pxl_clk)
      begin
@@ -184,31 +166,17 @@ begin
 	 curr_h_block <= intHcnt / pong_h_block_width;
 	 curr_v_block <= intVcnt / pong_v_block_width;
 	 
-	 curr_h_block_fractal <= intHcnt / fractal_h_block_width ;
-	 curr_v_block_fractal <= intVcnt / fractal_v_block_width ;
-	 
 	 with pong_matrix(curr_h_block)(curr_v_block) select bg_red <=
 	 x"F" when '1',
-	 fractal(curr_v_block_fractal)(curr_h_block_fractal) when others; 
-	 --x"0" when others;
+	 x"0" when others; 
 	 
 	 with pong_matrix(curr_h_block)(curr_v_block) select bg_green <=
 	 x"F" when '1',
-	 fractal(curr_v_block_fractal)(curr_h_block_fractal) when others;
-	 --x"0" when others;
+	 x"0" when others;
 	 
 	 with pong_matrix(curr_h_block)(curr_v_block) select bg_blue <=
 	 x"F" when '1',
-	 fractal(curr_v_block_fractal)(curr_h_block_fractal) when others;
-	 --x"0" when others;
-	 
---     bg_green <= fractal(curr_v_block_fractal)(curr_h_block_fractal);
---     bg_blue <= fractal(curr_v_block_fractal)(curr_h_block_fractal);
---     bg_red <= fractal(curr_v_block_fractal)(curr_h_block_fractal);
-	 
---	 bg_red <= conv_std_logic_vector((-intvcnt - inthcnt - cntDyn/2**20),8)(7 downto 4);
---	 bg_green <= conv_std_logic_vector((inthcnt - cntDyn/2**20),8)(7 downto 4);
---	 bg_blue <= conv_std_logic_vector((intvcnt - cntDyn/2**20),8)(7 downto 4);
+	 x"0" when others;
      
     
     ---------------------------------------------------------------------------------------------------
