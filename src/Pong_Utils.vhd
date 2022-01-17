@@ -22,8 +22,8 @@ package pong_utils_pkg is
 	subtype segments is std_logic_vector(7 downto 0);
 	type four_nums is array(0 to 3) of segments;
 	
-	function generate_matrix(ball: ball_info; paddle_left : paddle_info; paddle_right : paddle_info) return matrix_points; 
-	function is_ball_on_paddle(	ball: ball_info; paddle_left : paddle_info; paddle_right : paddle_info) return std_logic;
+	function generate_matrix(ball: ball_info; paddle_bottom : paddle_info; paddle_top : paddle_info) return matrix_points; 
+	function is_ball_on_paddle(	ball: ball_info; paddle_bottom : paddle_info; paddle_top : paddle_info) return std_logic;
 	function score_to_four_nums( score_right : unsigned(6 downto 0); score_left : unsigned(6 downto 0)) return four_nums;
 	function int_to_segments(num : integer range 0 to 9) return segments;
 	
@@ -40,7 +40,7 @@ end package;
 
 package body pong_utils_pkg is  
 	
-	function generate_matrix(ball: ball_info; paddle_left :paddle_info; paddle_right : paddle_info) return matrix_points is
+	function generate_matrix(ball: ball_info; paddle_bottom :paddle_info; paddle_top : paddle_info) return matrix_points is
 	variable matrix_to_return : matrix_points := (others => to_unsigned(0, game_pixel_width));
     begin	
 		-- Place ball in matrix
@@ -53,28 +53,28 @@ package body pong_utils_pkg is
 		end loop;				
 		
 		for i in 0 to 3 loop 
-			matrix_to_return(to_integer(paddle_left.y_pos + i)) := matrix_to_return(to_integer(paddle_left.y_pos + i)) or to_unsigned(2 ** (game_pixel_width - 1), game_pixel_width);
-			matrix_to_return(to_integer(paddle_right.y_pos + i)) := matrix_to_return(to_integer(paddle_right.y_pos + i)) or to_unsigned(1, game_pixel_width);
+			matrix_to_return(to_integer(paddle_bottom.y_pos + i)) := matrix_to_return(to_integer(paddle_bottom.y_pos + i)) or to_unsigned(2 ** (game_pixel_width - 1), game_pixel_width);
+			matrix_to_return(to_integer(paddle_top.y_pos + i)) := matrix_to_return(to_integer(paddle_top.y_pos + i)) or to_unsigned(1, game_pixel_width);
 		end loop;
        return matrix_to_return;
 		
     end;								   
 	
-	function is_ball_on_paddle(	ball: ball_info; paddle_left : paddle_info; paddle_right : paddle_info) return std_logic is
+	function is_ball_on_paddle(	ball: ball_info; paddle_bottom : paddle_info; paddle_top : paddle_info) return std_logic is
 	begin
 		if(ball.x_pos = game_pixel_width - 2) then
-			if (ball.y_pos >= paddle_left.y_pos) then
-				if(paddle_left.y_pos =  game_pixel_width - paddle_size) then
+			if (ball.y_pos >= paddle_bottom.y_pos) then
+				if(paddle_bottom.y_pos =  game_pixel_width - paddle_size) then
 					return '1';
-				elsif ( ball.y_pos <= paddle_left.y_pos + paddle_size - 1) then
+				elsif ( ball.y_pos <= paddle_bottom.y_pos + paddle_size - 1) then
 					return '1';	 
 				end if;
 			end if;
 		elsif(ball.x_pos = 1) then
-			if (ball.y_pos >= paddle_right.y_pos) then
-				if(paddle_right.y_pos = game_pixel_width - paddle_size) then
+			if (ball.y_pos >= paddle_top.y_pos) then
+				if(paddle_top.y_pos = game_pixel_width - paddle_size) then
 					return '1';
-				elsif (ball.y_pos <= paddle_right.y_pos + paddle_size - 1) then
+				elsif (ball.y_pos <= paddle_top.y_pos + paddle_size - 1) then
 					return '1';
 				end if;
 			end if;

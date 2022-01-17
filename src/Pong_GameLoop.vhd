@@ -33,8 +33,8 @@ begin
 							y_pos => to_unsigned(2, ball_info.y_pos'length),
 							going_right => '1',
 							going_up => '1');
-	variable paddle_left : paddle_info := (is_right_side => '0', y_pos => to_unsigned(paddle_start_pos, paddle_info.y_pos'length));
-	variable paddle_right : paddle_info := (is_right_side => '1', y_pos => to_unsigned(paddle_start_pos, paddle_info.y_pos'length));
+	variable paddle_bottom : paddle_info := (is_right_side => '0', y_pos => to_unsigned(paddle_start_pos, paddle_info.y_pos'length));
+	variable paddle_top : paddle_info := (is_right_side => '1', y_pos => to_unsigned(paddle_start_pos, paddle_info.y_pos'length));
 	variable clock_count : integer range 0 to clock_speed * 3;
 
 	begin		
@@ -47,12 +47,12 @@ begin
 							y_pos => to_unsigned(2, ball_info.y_pos'length),
 							going_right => '1',
 							going_up => '1'); 
-				paddle_left.y_pos := to_unsigned(paddle_start_pos, paddle_left.y_pos'length);	  
-				paddle_right.y_pos := to_unsigned(paddle_start_pos, paddle_right.y_pos'length);
+				paddle_bottom.y_pos := to_unsigned(paddle_start_pos, paddle_bottom.y_pos'length);	  
+				paddle_top.y_pos := to_unsigned(paddle_start_pos, paddle_top.y_pos'length);
 
 				
 				-- call function to get matrix from ball and paddles
-				curr_matrix <= generate_matrix(ball, paddle_left, paddle_right);
+				curr_matrix <= generate_matrix(ball, paddle_bottom, paddle_top);
 				
 				if ( reset = '1') then
                     score_left_s <= 0;
@@ -86,7 +86,7 @@ begin
 						if(ball.y_pos = 0 or ball.y_pos = screen_border_pixel) then
 							ball.going_up := not ball.going_up;
 						end if;													  
-						if(is_ball_on_paddle(ball, paddle_left, paddle_right)) then
+						if(is_ball_on_paddle(ball, paddle_bottom, paddle_top)) then
 							ball.going_right := not ball.going_right;	
 						end if;
 						-- X movement
@@ -99,19 +99,19 @@ begin
 							ball.y_pos -1 when others;	   
 						
 						-- Paddle Movement
-						if ( (unsigned(joystick_input) > (x"FFF" * 2/3)) and not (paddle_left.y_pos = 0) ) then
-							paddle_left.y_pos := paddle_left.y_pos - 1;
-							paddle_right.y_pos := paddle_right.y_pos - 1;
-						elsif ( (unsigned(joystick_input) < (x"FFF" * 1/3)) and not (paddle_left.y_pos = (screen_border_pixel - paddle_size + 1)) ) then
-							paddle_left.y_pos := paddle_left.y_pos + 1;
-							paddle_right.y_pos := paddle_right.y_pos + 1;
+						if ( (unsigned(joystick_input) > (x"FFF" * 2/3)) and not (paddle_bottom.y_pos = 0) ) then
+							paddle_bottom.y_pos := paddle_bottom.y_pos - 1;
+							paddle_top.y_pos := paddle_top.y_pos - 1;
+						elsif ( (unsigned(joystick_input) < (x"FFF" * 1/3)) and not (paddle_bottom.y_pos = (screen_border_pixel - paddle_size + 1)) ) then
+							paddle_bottom.y_pos := paddle_bottom.y_pos + 1;
+							paddle_top.y_pos := paddle_top.y_pos + 1;
 						else
-							paddle_left.y_pos := paddle_left.y_pos;
-							paddle_right.y_pos := paddle_right.y_pos;
+							paddle_bottom.y_pos := paddle_bottom.y_pos;
+							paddle_top.y_pos := paddle_top.y_pos;
 						end if;
 							
 						-- Generate new matrix with ball and paddles	   
-						curr_matrix <= generate_matrix(ball, paddle_left, paddle_right);
+						curr_matrix <= generate_matrix(ball, paddle_bottom, paddle_top);
 					end if;
 					
 					clock_count := 0;
